@@ -1,0 +1,98 @@
+[package]
+name = "spectrum"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.98"
+authors = ["SPECTRUM contributors"]
+license = "Apache-2.0"
+description = "SPECTRUM: Secure Photo-based Entropy-driven Cryptographic Trust and Unified Message protection - image-based post-quantum key derivation"
+keywords = ["cryptography", "post-quantum", "entropy", "biometric", "key-derivation"]
+categories = ["cryptography", "multimedia::images"]
+
+[dependencies]
+# Image processing. Only the five formats SPECTRUM accepts are enabled:
+# the default feature set pulls in ~15 more codecs (webp, exr, hdr, dds, …)
+# with their transitive dependency trees — a bigger supply-chain surface
+# and slower builds for code that can never run here.
+image = { version = "0.25", default-features = false, features = [
+    "png", "jpeg", "bmp", "tiff", "gif",
+] }
+
+# Hashing / MAC
+sha2 = "0.10"
+hmac = "0.12"
+# SHAKE256: extendable-output function (XOF) for the final master-key collapse.
+sha3 = "0.10"
+# HKDF (RFC 5869) over SHA-256: derives AES-GCM + HMAC subkeys from the
+# 1072-bit master key with domain-separated labels.
+hkdf = "0.12"
+# Ascon-Hash256 (NIST lightweight cryptography winner), used by the "Chaos"
+# entropy engine to fingerprint the chaotic Hénon orbit.
+ascon-hash256 = "0.1"
+
+# Encoding
+hex = "0.4"
+
+# Zeroization of secret key material on drop (crypto-primary crates).
+zeroize = "1"
+
+# Authenticated symmetric encryption (AES-256-GCM)
+aes-gcm = "0.10"
+
+# Randomness (nonces, test vectors)
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Errors & serde
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: JSON f64 parsing must be exactly round-trippable, or
+# analysis reports change value by 1 ULP when saved/loaded.
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Deterministic parallel entropy extraction
+rayon = "1.10"
+# n-dimensional arrays for the CoupledMapLattice (CML) spatiotemporal engine;
+# the `rayon` feature enables parallel axis iteration for the lattice sweeps.
+ndarray = { version = "0.16", features = ["rayon"] }
+# Complex numbers for the complex-Morlet continuous wavelet transform used by
+# the FractalAware engine's adaptive WTMM stage.
+num-complex = "0.4"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Optional post-quantum layer (requires system liboqs to build)
+oqs = { version = "0.8", optional = true }
+
+[features]
+default = []
+# Enables NTRU-Prime + Dilithium via liboqs. Requires liboqs compiled on the system.
+pq = ["dep:oqs"]
+
+[dev-dependencies]
+tempfile = "3"
+criterion = "0.5"
+proptest = "1"
+# Used by the e2e tests to build a valid custom config from the printed
+# default document (configs are fail-closed: no partial JSON accepted).
+serde_json = "1"
+
+[[bench]]
+name = "entropy"
+harness = false
+
+[[bench]]
+name = "performance"
+harness = false
+
+[[bin]]
+name = "spectrum"
+path = "src/bin/spectrum.rs"
+
+[profile.release]
+lto = true
