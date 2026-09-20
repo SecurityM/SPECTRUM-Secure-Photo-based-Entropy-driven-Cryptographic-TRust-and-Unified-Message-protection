@@ -6,7 +6,7 @@ rust-version = "1.98"
 authors = ["SPECTRUM contributors"]
 license = "Apache-2.0"
 description = "SPECTRUM: Secure Photo-based Entropy-driven Cryptographic Trust and Unified Message protection - image-based post-quantum key derivation"
-keywords = ["cryptography", "post-quantum", "entropy", "biometric", "key-derivation"]
+keywords = ["cryptography", "entropy"]
 categories = ["cryptography", "multimedia::images"]
 
 [dependencies]
